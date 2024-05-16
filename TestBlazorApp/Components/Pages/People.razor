@@ -3,10 +3,12 @@
 @using System.ComponentModel.DataAnnotations
 
 @using Models;
-@using DevExpress
+@using DevExpress.Data;
 
 @inject IDataAccessLayer data;
 @inject IConfiguration config;
+
+@inject NavigationManager navigation;
 
 
 
@@ -65,7 +67,7 @@ else
                     <td>@person.Birthday.ToShortDateString()</td>
                     
                     <td>
-                        <button class="btn btn-warning" @onclick="() => DeletePerson(person.Id)">Edit</button>
+                        <button class="btn btn-warning" @onclick="() => EditPerson(person.Id)">Edit</button>
                         <button class="btn btn-danger" @onclick="() => DeletePerson(person.Id)">Delete</button>
                     </td>
                 </tr>
@@ -95,6 +97,11 @@ else
             // Handle error (e.g., show an error message)
             Console.WriteLine($"An error occurred: {ex.Message}");
         }
+    }
+
+    private async Task EditPerson(int id)
+    {
+        navigation.NavigateTo($"/edit-person/{id}");
     }
 
     private async Task DeletePerson(int id)

@@ -46,6 +46,27 @@ public class DataAccessLayer : IDataAccessLayer
         }
     }
 
+    public async Task<Person> GetPersonAsync(int id, string connectionString)
+    {
+        const string sql = "SELECT Id, Name, Gender FROM People WHERE Id = @Id";
+
+        using (var connection = new SqlConnection(connectionString))
+        {
+            await connection.OpenAsync();
+            return await connection.QueryFirstOrDefaultAsync<Person>(sql, new { Id = id });
+        }
+    }
+    public async Task UpdatePersonAsync(Person person, string connectionString)
+    {
+        const string sql = "UPDATE People SET Name = @Name, Gender = @Gender WHERE Id = @Id";
+
+        using (var connection = new SqlConnection(connectionString))
+        {
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(sql, person);
+        }
+    }
+
     public async Task DeletePersonAsync(int id, string connectionString)
     {
         const string sql = "DELETE FROM People WHERE Id = @Id";
