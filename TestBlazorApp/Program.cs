@@ -14,8 +14,14 @@ namespace TestBlazorApp
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+            builder.Services.AddRazorPages();
+            builder.Services.AddServerSideBlazor();
+            
+            builder.Services.AddServerSideBlazor()
+                    .AddCircuitOptions(options => { options.DetailedErrors = true; });
 
             builder.Services.AddScoped<IDataAccessLayer,DataAccessLayer>();
+            //builder.Services.AddSingleton<StateContainerService>();
 
             var app = builder.Build();
 

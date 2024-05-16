@@ -1,0 +1,122 @@
+﻿@page "/people"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+
+@using Models;
+@using DevExpress
+
+@inject IDataAccessLayer data;
+@inject IConfiguration config;
+
+
+
+<h3>Add Person</h3>
+
+
+
+@* <button class="btn btn-primary" @onclick="InsertData">Insert Data</button> *@
+
+<EditForm Model="@person" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Name:</label>
+        <InputText id="name" @bind-Value="person.Name" />
+        <ValidationMessage For="@(() => person.Name)" />
+    </div>
+    <div>
+        <label>Gender:</label>
+        <InputText id="gender" @bind-Value="person.Gender" />
+        <ValidationMessage For="@(() => person.Gender)" />
+    </div>
+    <div>
+        <label>Birthday:</label>
+        <InputDate id="birthday" @bind-Value="person.Birthday" />
+        <ValidationMessage For="@(() => person.Birthday)" />
+    </div>
+
+    <button class="btn btn-info" type="submit">Submit</button>
+    @* <button class="btn btn-primary" @onclick="InsertPerson">Submit</button> *@
+</EditForm>
+<br />
+<h3>People</h3>
+
+@if (people == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Birthday</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in people)
+            {
+                <tr>
+                    <td>@person.Name</td>
+                    <td>@person.Gender</td>
+                    <td>@person.Birthday.ToShortDateString()</td>
+                    
+                    <td>
+                        <button class="btn btn-warning" @onclick="() => DeletePerson(person.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeletePerson(person.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private Person person = new Person();
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await data.InsertPersonAsync(person, config.GetConnectionString("DefaultConnection"));
+            // Handle success (e.g., clear the form, show a success message, etc.)
+            person = new Person();
+
+            // string sql = "select * from people";
+            // people = await data.LoadData<Person, dynamic>(sql, new { }, config.GetConnectionString("DefaultConnection"));
+            await OnInitializedAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error (e.g., show an error message)
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task DeletePerson(int id)
+    {
+        await data.DeletePersonAsync(id, config.GetConnectionString("DefaultConnection"));
+
+        await OnInitializedAsync(); // Refresh the list
+    }
+
+    
+    List<Person> people;
+
+    private async Task InsertData()
+    {
+        string sql = "insert into people (Name, Gender, Birthday) values (@Name, @Gender, @Birthday)";
+
+        await data.SaveData(sql, new { Name = "Petranka", Gender = "f", Birthday = "1999-11-21" }, config.GetConnectionString("DefaultConnection"));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string sql = "select * from people";
+        people = await data.LoadData<Person, dynamic>(sql, new { }, config.GetConnectionString("DefaultConnection"));
+    }
+}
