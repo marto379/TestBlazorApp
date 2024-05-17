@@ -4,10 +4,10 @@ using TestBlazorApp.Models;
 
 public interface IDataAccessLayer
 {
-    Task DeletePersonAsync(int id, string connectionString);
-    Task<Person> GetPersonAsync(int id, string connectionString);
-    Task InsertPersonAsync(Person person, string connectionString);
-    Task<List<T>> LoadData<T, U>(string sql, U parameters, string connectionString);
-    Task SaveData<T>(string sql, T parameters, string connectionString);
-    Task UpdatePersonAsync(Person person, string connectionString);
+    Task DeletePersonAsync(int id);
+    Task<Person> GetPersonAsync(int id);
+    Task InsertPersonAsync(Person person);
+    Task<List<T>> LoadData<T, U>(U parameters);
+    Task SaveData<T>(string sql, T parameters);
+    Task UpdatePersonAsync(Person person);
 }

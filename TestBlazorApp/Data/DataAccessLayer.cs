@@ -3,21 +3,30 @@ using System.Data;
 using System.Data.SqlClient;
 using TestBlazorApp.Models;
 
+
 public class DataAccessLayer : IDataAccessLayer
 {
-    public async Task<List<T>> LoadData<T, U>(string sql, U parameters, string connectionString)
+    private readonly string connectionString;
+
+    public DataAccessLayer(IConfiguration configuration)
+    {
+        connectionString = configuration.GetConnectionString("DefaultConnection")!;
+    }
+
+
+
+    public async Task<List<T>> LoadData<T, U>(U parameters)
     {
         using (IDbConnection connection = new SqlConnection(connectionString))
         {
+            string sql = "select * from people";
             var rows = await connection.QueryAsync<T>(sql, parameters);
-
-            
 
             return rows.ToList();
         }
     }
 
-    public async Task SaveData<T>(string sql, T parameters, string connectionString)
+    public async Task SaveData<T>(string sql, T parameters)
     {
         try
         {
@@ -35,7 +44,7 @@ public class DataAccessLayer : IDataAccessLayer
         }
     }
 
-    public async Task InsertPersonAsync(Person person, string connectionString)
+    public async Task InsertPersonAsync(Person person)
     {
         const string sql = "INSERT INTO People (Name, Gender, Birthday) VALUES (@Name, @Gender, @Birthday)";
 
@@ -46,7 +55,7 @@ public class DataAccessLayer : IDataAccessLayer
         }
     }
 
-    public async Task<Person> GetPersonAsync(int id, string connectionString)
+    public async Task<Person> GetPersonAsync(int id)
     {
         const string sql = "SELECT Id, Name, Gender FROM People WHERE Id = @Id";
 
@@ -56,7 +65,7 @@ public class DataAccessLayer : IDataAccessLayer
             return await connection.QueryFirstOrDefaultAsync<Person>(sql, new { Id = id });
         }
     }
-    public async Task UpdatePersonAsync(Person person, string connectionString)
+    public async Task UpdatePersonAsync(Person person)
     {
         const string sql = "UPDATE People SET Name = @Name, Gender = @Gender WHERE Id = @Id";
 
@@ -67,7 +76,7 @@ public class DataAccessLayer : IDataAccessLayer
         }
     }
 
-    public async Task DeletePersonAsync(int id, string connectionString)
+    public async Task DeletePersonAsync(int id)
     {
         const string sql = "DELETE FROM People WHERE Id = @Id";
 

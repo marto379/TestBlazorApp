@@ -43,12 +43,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        person = await data.GetPersonAsync(Id, config.GetConnectionString("DefaultConnection"));
+        person = await data.GetPersonAsync(Id);
     }
 
     private async Task UpdatePerson()
     {
-        await data.UpdatePersonAsync(person, config.GetConnectionString("DefaultConnection"));
+        await data.UpdatePersonAsync(person);
         navigation.NavigateTo("/people");
     }
 }
