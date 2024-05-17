@@ -11,12 +11,8 @@
 @inject NavigationManager navigation;
 
 
-
 <h3>Add Person</h3>
 
-
-
-@* <button class="btn btn-primary" @onclick="InsertData">Insert Data</button> *@
 
 <EditForm Model="@person" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -39,7 +35,6 @@
     </div>
 
     <button class="btn btn-info" type="submit">Submit</button>
-    @* <button class="btn btn-primary" @onclick="InsertPerson">Submit</button> *@
 </EditForm>
 <br />
 <h3>People</h3>
@@ -95,36 +90,11 @@ else
         </tbody>
     </table>
 }
-@if (isEditFormVisible)
-{
-    <EditForm Model="@selectedPerson" OnValidSubmit="HandleValidSubmitEdit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="form-group">
-            <label for="name">Name:</label>
-            <InputText id="name" class="form-control" @bind-Value="selectedPerson.Name" />
-        </div>
-
-        <div class="form-group">
-            <label for="gender">Gender:</label>
-            <InputSelect id="gender" class="form-control" @bind-Value="selectedPerson.Gender">
-                <option value="m">m</option>
-                <option value="f">f</option>
-                <option value="Other">Other</option>
-            </InputSelect>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Save</button>
-        <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-    </EditForm>
-}
 
 @code {
 
     
     private List<Person> people;
-    private bool isEditFormVisible = false;
     private Person selectedPerson = new Person();
     private Person editingPerson = null;
 
@@ -153,19 +123,7 @@ else
         }
     }
     
-    // private async void EditPerson(int id)
-    // {
-    //     selectedPerson = await data.GetPersonAsync(id);
-    //     isEditFormVisible = true;
-    // }
-
-    private async Task HandleValidSubmitEdit()
-    {
-        await data.UpdatePersonAsync(selectedPerson);
-        isEditFormVisible = false;
-        people = await data.LoadData<Person, dynamic>(new { });
-    }
-
+    
     private void CancelEdit()
     {
         editingPerson = null;
@@ -177,40 +135,23 @@ else
         try
         {
             await data.InsertPersonAsync(person);
-            // Handle success (e.g., clear the form, show a success message, etc.)
             person = new Person();
 
-            // string sql = "select * from people";
-            // people = await data.LoadData<Person, dynamic>(sql, new { }, config.GetConnectionString("DefaultConnection"));
             await OnInitializedAsync();
         }
         catch (Exception ex)
         {
-            // Handle error (e.g., show an error message)
             Console.WriteLine($"An error occurred: {ex.Message}");
         }
     }
-
-    // private async Task EditPerson(int id)
-    // {
-    //     navigation.NavigateTo($"/edit-person/{id}");
-    // }
-
+    
     private async Task DeletePerson(int id)
     {
         await data.DeletePersonAsync(id);
 
         await OnInitializedAsync(); // Refresh the list
     }
-
-
-    // private async Task InsertData()
-    // {
-    //     string sql = "insert into people (Name, Gender, Birthday) values (@Name, @Gender, @Birthday)";
-
-    //     await data.SaveData(sql, new { Name = "Petranka", Gender = "f", Birthday = "1999-11-21" });
-    // }
-
+   
     protected override async Task OnInitializedAsync()
     {
         
