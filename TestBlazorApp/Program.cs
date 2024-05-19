@@ -1,10 +1,9 @@
-namespace TestBlazorApp
-{
-    using Dapper;
-    using System.Data.SqlClient;
-    using TestBlazorApp.Components;
-    using TestBlazorApp.Models;
+using ItemsBlazorApp.Components;
+using ItemsBlazorApp.Models;
+using ItemsBlazorApp.Services;
 
+namespace ItemsBlazorApp
+{
     public class Program
     {
         public static void Main(string[] args)
@@ -16,12 +15,16 @@ namespace TestBlazorApp
                 .AddInteractiveServerComponents();
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
-            
+
             builder.Services.AddServerSideBlazor()
                     .AddCircuitOptions(options => { options.DetailedErrors = true; });
 
-            builder.Services.AddScoped<IDataAccessLayer,DataAccessLayer>();
-            //builder.Services.AddSingleton<StateContainerService>();
+            var settings = builder.Configuration.Get<AppSettings>();
+            builder.Services.AddSingleton<AppSettings>(settings!);
+            
+
+            builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+            builder.Services.AddHttpClient<ICommunicationService, CommunicationService>();
 
             var app = builder.Build();
 
@@ -40,17 +43,6 @@ namespace TestBlazorApp
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-            //app.MapGet("People",async (IConfiguration configuration) =>
-            //{
-            //    string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-            //    using var connection = new SqlConnection(connectionString);
-
-            //    const string sql = "SELECT * FROM People";
-
-            //    var people = await connection.QueryAsync<Person>(sql);
-            //    return Results.Ok(people);
-            //});
 
             app.Run();
         }

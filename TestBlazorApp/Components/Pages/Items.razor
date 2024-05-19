@@ -1,0 +1,156 @@
+﻿@page "/items"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using ItemsBlazorApp.Services;
+@using Models;
+@using DevExpress.Data;
+
+@inject ICommunicationService _communicationService;
+
+@inject NavigationManager navigation;
+
+
+<h3>Add Item</h3>
+
+
+<EditForm Model="@_item" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Name:</label>
+        <InputText id="name" @bind-Value="_item.Name" />
+        <ValidationMessage For="@(() => _item.Name)" />
+    </div>
+    <div>
+        <label>Price:</label>
+        <InputNumber id="price" @bind-Value="_item.Price" />
+        <ValidationMessage For="@(() => _item.Price)" />
+    </div>
+    <div>
+        <label>Date Added:</label>
+        <InputDate id="dateAdded" @bind-Value="_item.DateAdded" />
+        <ValidationMessage For="@(() => _item.DateAdded)" />
+    </div>
+
+    <button class="btn btn-info" type="submit">Submit</button>
+</EditForm>
+<br />
+<h3>Items</h3>
+
+@if (items == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Date Added</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    @if (item.Id == editingItem?.Id)
+                    {
+                        <td>
+                            <InputText class="form-control" @bind-Value="editingItem.Name" />
+                        </td>
+                        <td>
+                            <InputNumber class="form-control" @bind-Value="editingItem.Price"/>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                            <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                        </td>
+                    }
+                    else
+                    {
+                        <td>@item.Name</td>
+                        <td>@item.Price</td>
+                        <td>@item.DateAdded</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => Edititem(item)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => Deleteitem(item.Id)">Delete</button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+
+    private List<Item> items;
+    private Item selectedItem = new Item();
+    private Item editingItem = null;
+
+    private void Edititem(Item item)
+    {
+        editingItem = new Item
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                DateAdded = item.DateAdded
+            };
+    }
+
+    private async void SaveEdit()
+    {
+        if (editingItem != null)
+        {
+           await _communicationService.UpdateItemAsync(editingItem);
+           var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
+           if (item != null)
+           {
+               item.Name = editingItem.Name;
+               item.Price = editingItem.Price;
+           }
+           editingItem = null;
+        }
+    }
+
+
+    private void CancelEdit()
+    {
+        editingItem = null;
+    }
+    private Item _item = new Item();
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+           await _communicationService.InsertItemAsync(_item);
+           _item = new Item();
+        
+           await OnInitializedAsync();
+        }
+        catch (Exception ex)
+        {
+           Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task Deleteitem(long id)
+    {
+        await _communicationService.DeleteItemAsync(id);
+        
+        await OnInitializedAsync(); // Refresh the list
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        items = await _communicationService.GetAllAsync();
+    }
+}
