@@ -1,10 +1,9 @@
-﻿namespace ItemsBlazorApp.Services
-{
-    using ItemsBlazorApp.Models;
-    using Microsoft.AspNetCore.Mvc.Formatters;
-    using System.Text.Json;
-    using System.Threading.Tasks;
+﻿using ItemsBlazorApp.Models;
+using System.Text;
+using System.Text.Json;
 
+namespace ItemsBlazorApp.Services
+{
     public class CommunicationService : ICommunicationService
     {
         public CommunicationService(
@@ -22,7 +21,7 @@
         public async Task<List<Item?>> GetAllAsync()
         {
             var result = await _httpClient.GetAsync($"{_settings.ItemApiAddress}/items");
-            if(!result.IsSuccessStatusCode)
+            if (!result.IsSuccessStatusCode)
             {
                 return [];
             }
@@ -34,8 +33,8 @@
         public async Task InsertItemAsync(Item item)
         {
             var jsonContent = JsonSerializer.Serialize(item);
-            using var content = new StringContent(jsonContent);
-            await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
+            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var r = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
             // handle errors
             //if (!result.IsSuccessStatusCode)
             //{
@@ -46,7 +45,7 @@
         public async Task UpdateItemAsync(Item item)
         {
             var jsonContent = JsonSerializer.Serialize(item);
-            using var content = new StringContent(jsonContent);
+            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
         }
 
