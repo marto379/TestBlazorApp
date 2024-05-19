@@ -25,6 +25,7 @@ namespace ItemsBlazorApp
 
             builder.Services.AddScoped<ICommunicationService, CommunicationService>();
             builder.Services.AddHttpClient<ICommunicationService, CommunicationService>();
+            builder.Services.AddDevExpressBlazor();
 
             var app = builder.Build();
 

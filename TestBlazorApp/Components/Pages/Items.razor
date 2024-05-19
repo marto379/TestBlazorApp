@@ -4,16 +4,30 @@
 @using System.ComponentModel.DataAnnotations
 @using ItemsBlazorApp.Services;
 @using Models;
-@using DevExpress.Data;
+@using DevExpress.Blazor;
 
 @inject ICommunicationService _communicationService;
 
 @inject NavigationManager navigation;
 
 
-<h3>Add Item</h3>
+@* <h3>Add Item</h3> *@
 
+<DxGrid Data="items"
+    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+    KeyboardNavigationEnabled="true">
 
+    <Columns>
+        <DxGridDataColumn FieldName="Name"/>
+        <DxGridDataColumn FieldName="Price" />
+        <DxGridDataColumn FieldName="DateAdded" Caption="Date Added" />
+
+    </Columns>
+</DxGrid>
+
+<br />
+<br />
+<br />
 <EditForm Model="@_item" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -85,11 +99,10 @@ else
         </tbody>
     </table>
 }
-
 @code {
 
 
-    private List<Item> items;
+    private List<Item?> items { get; set; } 
     private Item selectedItem = new Item();
     private Item editingItem = null;
 
@@ -108,14 +121,14 @@ else
     {
         if (editingItem != null)
         {
-           await _communicationService.UpdateItemAsync(editingItem);
-           var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
-           if (item != null)
-           {
-               item.Name = editingItem.Name;
-               item.Price = editingItem.Price;
-           }
-           editingItem = null;
+            await _communicationService.UpdateItemAsync(editingItem);
+            var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
+            if (item != null)
+            {
+                item.Name = editingItem.Name;
+                item.Price = editingItem.Price;
+            }
+            editingItem = null;
         }
     }
 
@@ -130,27 +143,27 @@ else
     {
         try
         {
-           await _communicationService.InsertItemAsync(_item);
-           _item = new Item();
-        
-           await OnInitializedAsync();
+            await _communicationService.InsertItemAsync(_item);
+            _item = new Item();
+
+            await OnInitializedAsync();
         }
         catch (Exception ex)
         {
-           Console.WriteLine($"An error occurred: {ex.Message}");
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
     }
 
     private async Task Deleteitem(long id)
     {
         await _communicationService.DeleteItemAsync(id);
-        
+
         await OnInitializedAsync(); // Refresh the list
     }
 
     protected override async Task OnInitializedAsync()
     {
-
         items = await _communicationService.GetAllAsync();
+        await base.OnInitializedAsync();
     }
 }
