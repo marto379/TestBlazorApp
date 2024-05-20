@@ -4,11 +4,11 @@
 
     public interface ICommunicationService
     {
-        Task<List<Item?>> GetAllAsync();
+        Task<List<ItemViewModel?>> GetAllAsync();
 
-        Task InsertItemAsync(Item item);
+        Task InsertItemAsync(ItemViewModel item);
 
-        Task UpdateItemAsync(Item item);
+        Task UpdateItemAsync(ItemViewModel item);
 
         Task DeleteItemAsync(long id);
     }

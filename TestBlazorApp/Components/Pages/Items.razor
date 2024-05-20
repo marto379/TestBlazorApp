@@ -102,13 +102,13 @@ else
 @code {
 
 
-    private List<Item?> items { get; set; } 
-    private Item selectedItem = new Item();
-    private Item editingItem = null;
+    private List<ItemViewModel?> items { get; set; } 
+    private ItemViewModel selectedItem = new ItemViewModel();
+    private ItemViewModel editingItem = null;
 
-    private void Edititem(Item item)
+    private void Edititem(ItemViewModel item)
     {
-        editingItem = new Item
+        editingItem = new ItemViewModel
             {
                 Id = item.Id,
                 Name = item.Name,
@@ -129,6 +129,7 @@ else
                 item.Price = editingItem.Price;
             }
             editingItem = null;
+            await OnInitializedAsync(); // Refresh the list
         }
     }
 
@@ -137,14 +138,14 @@ else
     {
         editingItem = null;
     }
-    private Item _item = new Item();
+    private ItemViewModel _item = new ItemViewModel();
 
     private async Task HandleValidSubmit()
     {
         try
         {
             await _communicationService.InsertItemAsync(_item);
-            _item = new Item();
+            _item = new ItemViewModel();
 
             await OnInitializedAsync();
         }

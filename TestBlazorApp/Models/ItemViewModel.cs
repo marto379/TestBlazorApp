@@ -2,7 +2,7 @@
 {
     using System.Text.Json.Serialization;
 
-    public class Item
+    public class ItemViewModel
     {
         [JsonPropertyName("id")]
         public long Id { get; set; }

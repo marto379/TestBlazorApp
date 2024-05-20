@@ -18,7 +18,7 @@ namespace ItemsBlazorApp.Services
         private readonly HttpClient _httpClient;
         private readonly AppSettings _settings;
 
-        public async Task<List<Item?>> GetAllAsync()
+        public async Task<List<ItemViewModel?>> GetAllAsync()
         {
             var result = await _httpClient.GetAsync($"{_settings.ItemApiAddress}/items");
             if (!result.IsSuccessStatusCode)
@@ -27,10 +27,10 @@ namespace ItemsBlazorApp.Services
             }
             var responseContent = await result.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<List<Item?>>(responseContent)!;
+            return JsonSerializer.Deserialize<List<ItemViewModel?>>(responseContent)!;
         }
 
-        public async Task InsertItemAsync(Item item)
+        public async Task InsertItemAsync(ItemViewModel item)
         {
             var jsonContent = JsonSerializer.Serialize(item);
             using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -42,7 +42,7 @@ namespace ItemsBlazorApp.Services
             //}
         }
 
-        public async Task UpdateItemAsync(Item item)
+        public async Task UpdateItemAsync(ItemViewModel item)
         {
             var jsonContent = JsonSerializer.Serialize(item);
             using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
