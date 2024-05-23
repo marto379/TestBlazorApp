@@ -84,15 +84,13 @@ namespace ItemsAPI
 
             app.MapDelete("item/{id}", async ([FromRoute]long id, IDataAccessLayer accessLayer) =>
             {
-                try
-                {
+                    Item? item = await accessLayer.GetItemAsync(id);
+                    if (item == null)
+                    {
+                        return Results.BadRequest($"Not found item with id: {id}");
+                    }
                     await accessLayer.DeleteItemAsync(id);
-                    return Results.Ok();
-                }
-                catch (Exception)
-                {
-                    return Results.BadRequest("Something went wrong!");
-                }
+                    return Results.Ok($"Successfully deleted item with id: {id}");
             });
 
             app.Run();
