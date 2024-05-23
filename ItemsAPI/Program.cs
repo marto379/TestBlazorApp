@@ -1,4 +1,5 @@
 using ItemsAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ItemsAPI
@@ -49,36 +50,50 @@ namespace ItemsAPI
 
             app.MapGet("items", async (IDataAccessLayer accessLayer) =>
             {
-                var result = await accessLayer.GetAllItemsAsync();
-                return Results.Ok(result);
+                try
+                {
+                    var result = await accessLayer.GetAllItemsAsync();
+                    return Results.Ok(result);
+                }
+                catch (Exception)
+                {
+                    return Results.NotFound("Something went wrong!");
+                }
             });
 
-            ///
             app.MapPost("item", async ([FromBody]Item item ,IDataAccessLayer accesslayer) =>
             {
-                //add validation
+                if (item.Name.Length < 0 || item.Price <= 0)
+                {
+                    return Results.BadRequest("Invalid data!");
+                }
                 await accesslayer.InsertItemAsync(item);
                 return Results.Ok();
             });
 
-            ///
             app.MapPut("item", async ([FromBody] Item item, IDataAccessLayer accessLayer) =>
             {
                 //add validation
-                //if (item.Name.Length < 0)
-                //{
-
-                //}
+                if (item.Name.Length < 0 || item.Price <= 0)
+                {
+                    return Results.BadRequest("Invalid data!"); 
+                }
                 await accessLayer.UpdateItemAsync(item);
                 return Results.Ok();
             });
 
-            ///
             app.MapDelete("item/{id}", async ([FromRoute]long id, IDataAccessLayer accessLayer) =>
             {
-                await accessLayer.DeleteItemAsync(id);
+                try
+                {
+                    await accessLayer.DeleteItemAsync(id);
+                    return Results.Ok();
+                }
+                catch (Exception)
+                {
+                    return Results.BadRequest("Something went wrong!");
+                }
             });
-
 
             app.Run();
         }
