@@ -7,18 +7,14 @@
 @using DevExpress.Blazor;
 
 @inject ICommunicationService _communicationService;
-
 @inject NavigationManager navigation;
 
-
-@* <h3>Add Item</h3> *@
-
 <DxGrid Data="items"
-    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-    KeyboardNavigationEnabled="true">
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        KeyboardNavigationEnabled="true">
 
     <Columns>
-        <DxGridDataColumn FieldName="Name"/>
+        <DxGridDataColumn FieldName="Name" />
         <DxGridDataColumn FieldName="Price" />
         <DxGridDataColumn FieldName="DateAdded" Caption="Date Added" />
 
@@ -28,6 +24,7 @@
 <br />
 <br />
 <br />
+<h2>Add new Item</h2>
 <EditForm Model="@_item" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -49,6 +46,11 @@
     </div>
 
     <button class="btn btn-info" type="submit">Submit</button>
+    @if (!string.IsNullOrEmpty(insertErrorMessage))
+    {
+        <div class="alert alert-danger">@insertErrorMessage</div>
+    }
+
 </EditForm>
 <br />
 <h3>Items</h3>
@@ -75,14 +77,20 @@ else
                     {
                         <td>
                             <InputText class="form-control" @bind-Value="editingItem.Name" />
+
                         </td>
                         <td>
-                            <InputNumber class="form-control" @bind-Value="editingItem.Price"/>
+                            <InputNumber class="form-control" @bind-Value="editingItem.Price" />
                         </td>
                         <td>
                             <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                            @if (!string.IsNullOrEmpty(updateErrorMessage))
+                            {
+                                <div class="alert alert-danger">@updateErrorMessage</div>
+                            }
                             <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
                         </td>
+
                     }
                     else
                     {
@@ -91,48 +99,58 @@ else
                         <td>@item.DateAdded</td>
                         <td>
                             <button class="btn btn-primary" @onclick="() => Edititem(item)">Edit</button>
-                            <button class="btn btn-danger" @onclick="() => Deleteitem(item.Id)">Delete</button>
+                            <button class="btn btn-danger" @onclick="() =>  Deleteitem(item.Id)">Delete</button>
                         </td>
                     }
                 </tr>
             }
+
         </tbody>
     </table>
 }
 @code {
 
-
-    private List<ItemViewModel?> items { get; set; } 
+    private List<ItemViewModel?> items { get; set; }
     private ItemViewModel selectedItem = new ItemViewModel();
     private ItemViewModel editingItem = null;
+    private string updateErrorMessage;
+    private string insertErrorMessage;
 
-    private void Edititem(ItemViewModel item)
+    private async void Edititem(ItemViewModel item)
     {
-        editingItem = new ItemViewModel
+        editingItem = new ItemViewModel()
             {
                 Id = item.Id,
                 Name = item.Name,
                 Price = item.Price,
                 DateAdded = item.DateAdded
             };
+
     }
 
     private async void SaveEdit()
     {
         if (editingItem != null)
         {
-            await _communicationService.UpdateItemAsync(editingItem);
-            var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
-            if (item != null)
+            updateErrorMessage = null;
+            try
             {
-                item.Name = editingItem.Name;
-                item.Price = editingItem.Price;
+                await _communicationService.UpdateItemAsync(editingItem);
+                var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
+                if (item != null)
+                {
+                    item.Name = editingItem.Name;
+                    item.Price = editingItem.Price;
+                }
+                editingItem = null;
+                StateHasChanged();
             }
-            editingItem = null;
-            await OnInitializedAsync(); // Refresh the list
+            catch (Exception ex)
+            {
+                updateErrorMessage = ex.Message;
+            }
         }
     }
-
 
     private void CancelEdit()
     {
@@ -142,6 +160,7 @@ else
 
     private async Task HandleValidSubmit()
     {
+        insertErrorMessage = null;
         try
         {
             await _communicationService.InsertItemAsync(_item);
@@ -151,7 +170,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            insertErrorMessage = ex.Message;
         }
     }
 

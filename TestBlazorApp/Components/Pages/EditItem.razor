@@ -1,0 +1,58 @@
+﻿@* @page "/edititem/{id:long}"
+@using ItemsBlazorApp.Models
+@using ItemsBlazorApp.Services
+
+@inject HttpClient http;
+@inject NavigationManager Navigation;
+@inject ICommunicationService _communicationService;
+@inject AppSettings _settings;
+
+
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="item" OnValidSubmit="SaveItem">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Name:@item.Name</label>
+            <InputText @bind-Value="item.Name" />
+            <ValidationMessage For="@(() => item.Name)" />
+        </div>
+
+        <div>
+            <label>Price:@item.Price</label>
+            <InputNumber @bind-Value="item.Price" />
+            <ValidationMessage For="@(() => item.Price)" />
+
+        </div>
+
+        <button type="submit">Save</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public long id { get; set; }
+
+    private ItemViewModel item = new ItemViewModel();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await _communicationService.GetItemAsync(id);
+        // await http.GetFromJsonAsync<ItemViewModel>($"{_settings.ItemApiAddress}/item/{item.Id}");
+        isLoading = false;
+    }
+
+    private async Task SaveItem()
+    {
+        await _communicationService.UpdateItemAsync(item);
+        Navigation.NavigateTo("/items");
+    }
+} *@

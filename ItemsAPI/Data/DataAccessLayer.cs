@@ -35,12 +35,12 @@ public class DataAccessLayer : IDataAccessLayer
         return result;
     }
 
-    public async Task UpdateItemAsync(Item person)
+    public async Task UpdateItemAsync(Item item)
     {
         using var connection = new SqlConnection(connectionString);
 
         await connection.OpenAsync();
-        await connection.ExecuteAsync(Queries.UpdateItemQuery, person);
+        await connection.ExecuteAsync(Queries.UpdateItemQuery, item);
     }
 
     public async Task DeleteItemAsync(long id)

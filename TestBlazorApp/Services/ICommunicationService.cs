@@ -8,8 +8,9 @@
 
         Task InsertItemAsync(ItemViewModel item);
 
-        Task UpdateItemAsync(ItemViewModel item);
+        Task<bool> UpdateItemAsync(ItemViewModel item);
 
         Task DeleteItemAsync(long id);
+        Task<ItemViewModel?> GetItemAsync(long id);
     }
 }

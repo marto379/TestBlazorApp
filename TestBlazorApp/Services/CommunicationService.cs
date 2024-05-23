@@ -1,4 +1,5 @@
 ﻿using ItemsBlazorApp.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Text;
 using System.Text.Json;
 
@@ -30,28 +31,81 @@ namespace ItemsBlazorApp.Services
             return JsonSerializer.Deserialize<List<ItemViewModel?>>(responseContent)!;
         }
 
-        public async Task InsertItemAsync(ItemViewModel item)
+        public async Task<ItemViewModel?> GetItemAsync(long id)
         {
-            var jsonContent = JsonSerializer.Serialize(item);
-            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var r = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
-            // handle errors
-            //if (!result.IsSuccessStatusCode)
-            //{
-            //    
-            //}
+            var result = await _httpClient.GetAsync($"{_settings.ItemApiAddress}/item/{id}");
+            if (!result.IsSuccessStatusCode)
+            {
+                return null;
+            }
+            var responseContent = await result.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ItemViewModel?>(responseContent)!;
         }
 
-        public async Task UpdateItemAsync(ItemViewModel item)
+        public async Task InsertItemAsync(ItemViewModel item)
         {
-            var jsonContent = JsonSerializer.Serialize(item);
-            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
+            try
+            {
+                if (!IsValidItem(item, out var validationErrors))
+                {
+                    throw new ArgumentException(string.Join(", ", validationErrors));
+                }
+
+                var jsonContent = JsonSerializer.Serialize(item);
+                using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var result = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateItemAsync(ItemViewModel item)
+        {
+            try
+            {
+                if (!IsValidItem(item, out var validationErrors))
+                {
+                    throw new ArgumentException(string.Join(", ", validationErrors));
+                }
+
+                var jsonContent = JsonSerializer.Serialize(item);
+                using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
+
+                return true;
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
         }
 
         public async Task DeleteItemAsync(long id)
         {
             await _httpClient.DeleteAsync($"{_settings.ItemApiAddress}/item/{id}");
+        }
+
+        private bool IsValidItem(ItemViewModel viewModel, out List<string> validationErrors)
+        {
+            validationErrors = new List<string>();
+
+            // Check if the price is positive
+            if (viewModel.Price <= 0)
+            {
+                validationErrors.Add("Price must be a positive number.");
+            }
+
+            if (string.IsNullOrEmpty(viewModel.Name))
+            {
+                validationErrors.Add("Name can't be empty");
+            }
+
+            return !validationErrors.Any();
         }
     }
 }
