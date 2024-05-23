@@ -92,7 +92,7 @@ namespace ItemsAPI
                 }
                 catch (Exception)
                 {
-                    return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                    return Results.Problem();
                 }
             });
 
