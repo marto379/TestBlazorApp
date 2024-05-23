@@ -1,6 +1,7 @@
 using ItemsAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ItemsAPI
 {
@@ -18,6 +19,7 @@ namespace ItemsAPI
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IDataAccessLayer, DataAccessLayer>();
+            builder.Services.AddSingleton<ItemValidator>();
 
             var app = builder.Build();
 
@@ -61,22 +63,21 @@ namespace ItemsAPI
                 }
             });
 
-            app.MapPost("item", async ([FromBody]Item item ,IDataAccessLayer accesslayer) =>
+            app.MapPost("item", async ([FromBody]Item item ,IDataAccessLayer accesslayer, ItemValidator validator) =>
             {
-                if (item.Name.Length < 0 || item.Price <= 0)
+                if (!validator.IsValidItem(item, out var validationErrors))
                 {
-                    return Results.BadRequest("Invalid data!");
+                    return Results.BadRequest(string.Join(", ", validationErrors));
                 }
                 await accesslayer.InsertItemAsync(item);
                 return Results.Ok();
             });
 
-            app.MapPut("item", async ([FromBody] Item item, IDataAccessLayer accessLayer) =>
+            app.MapPut("item", async ([FromBody] Item item, IDataAccessLayer accessLayer, ItemValidator validator) =>
             {
-                //add validation
-                if (item.Name.Length < 0 || item.Price <= 0)
+                if (!validator.IsValidItem(item, out var validationErrors))
                 {
-                    return Results.BadRequest("Invalid data!"); 
+                    return Results.BadRequest(string.Join(", ", validationErrors));
                 }
                 await accessLayer.UpdateItemAsync(item);
                 return Results.Ok();
@@ -84,13 +85,15 @@ namespace ItemsAPI
 
             app.MapDelete("item/{id}", async ([FromRoute]long id, IDataAccessLayer accessLayer) =>
             {
-                    Item? item = await accessLayer.GetItemAsync(id);
-                    if (item == null)
-                    {
-                        return Results.BadRequest($"Not found item with id: {id}");
-                    }
+                try
+                {
                     await accessLayer.DeleteItemAsync(id);
                     return Results.Ok($"Successfully deleted item with id: {id}");
+                }
+                catch (Exception)
+                {
+                    return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                }
             });
 
             app.Run();

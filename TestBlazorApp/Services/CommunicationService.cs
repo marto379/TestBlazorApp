@@ -45,8 +45,6 @@ namespace ItemsBlazorApp.Services
 
         public async Task InsertItemAsync(ItemViewModel item)
         {
-            try
-            {
                 if (!IsValidItem(item, out var validationErrors))
                 {
                     throw new ArgumentException(string.Join(", ", validationErrors));
@@ -55,17 +53,11 @@ namespace ItemsBlazorApp.Services
                 var jsonContent = JsonSerializer.Serialize(item);
                 using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var result = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
         }
 
         public async Task<bool> UpdateItemAsync(ItemViewModel item)
         {
-            try
-            {
+            
                 if (!IsValidItem(item, out var validationErrors))
                 {
                     throw new ArgumentException(string.Join(", ", validationErrors));
@@ -76,13 +68,6 @@ namespace ItemsBlazorApp.Services
                 await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
 
                 return true;
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            
         }
 
         public async Task DeleteItemAsync(long id)
@@ -94,7 +79,6 @@ namespace ItemsBlazorApp.Services
         {
             validationErrors = new List<string>();
 
-            // Check if the price is positive
             if (viewModel.Price <= 0)
             {
                 validationErrors.Add("Price must be a positive number.");

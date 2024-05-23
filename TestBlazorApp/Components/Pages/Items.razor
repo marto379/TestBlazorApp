@@ -100,6 +100,10 @@ else
                         <td>
                             <button class="btn btn-primary" @onclick="() => Edititem(item)">Edit</button>
                             <button class="btn btn-danger" @onclick="() =>  Deleteitem(item.Id)">Delete</button>
+                            @if (!string.IsNullOrEmpty(insertErrorMessage))
+                            {
+                                <div class="alert alert-danger">@deleteErrorMessage</div>
+                            }
                         </td>
                     }
                 </tr>
@@ -113,8 +117,11 @@ else
     private List<ItemViewModel?> items { get; set; }
     private ItemViewModel selectedItem = new ItemViewModel();
     private ItemViewModel editingItem = null;
+
     private string updateErrorMessage;
     private string insertErrorMessage;
+    private string deleteErrorMessage;
+    private string getErrorMessage;
 
     private async void Edititem(ItemViewModel item)
     {
@@ -176,14 +183,31 @@ else
 
     private async Task Deleteitem(long id)
     {
-        await _communicationService.DeleteItemAsync(id);
+        deleteErrorMessage = null;
+        try
+        {
+            await _communicationService.DeleteItemAsync(id);
 
-        await OnInitializedAsync(); // Refresh the list
+            await OnInitializedAsync(); // Refresh the list
+        }
+        catch (Exception)
+        {
+            deleteErrorMessage = "Failed to delete this item! Please try again!";
+        }
+
     }
 
     protected override async Task OnInitializedAsync()
     {
-        items = await _communicationService.GetAllAsync();
-        await base.OnInitializedAsync();
+        getErrorMessage = null;
+        try
+        {
+            items = await _communicationService.GetAllAsync();
+            await base.OnInitializedAsync();
+        }
+        catch (Exception)
+        {
+            getErrorMessage = "Failed to load data! Please try again later!";
+        }
     }
 }

@@ -7,7 +7,7 @@
         public long Id { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "Name cannot be longer than 100 characters")]
         public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Price is required")]

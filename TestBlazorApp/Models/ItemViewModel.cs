@@ -10,7 +10,7 @@
         public long Id { get; set; }
         [JsonPropertyName("name")]
         [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "Name cannot be longer than 100 characters")]
         public string Name { get; set; } = null!;
 
         [JsonPropertyName("price")]
