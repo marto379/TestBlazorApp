@@ -11,6 +11,7 @@
         Task<bool> UpdateItemAsync(ItemViewModel item);
 
         Task DeleteItemAsync(long id);
+
         Task<ItemViewModel?> GetItemAsync(long id);
     }
 }

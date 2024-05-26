@@ -45,29 +45,28 @@ namespace ItemsBlazorApp.Services
 
         public async Task InsertItemAsync(ItemViewModel item)
         {
-                if (!IsValidItem(item, out var validationErrors))
-                {
-                    throw new ArgumentException(string.Join(", ", validationErrors));
-                }
-
-                var jsonContent = JsonSerializer.Serialize(item);
-                using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var result = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
+            if (!IsValidItem(item, out var validationErrors))
+            {
+                throw new ArgumentException(string.Join(", ", validationErrors));
+            }
+            
+            var jsonContent = JsonSerializer.Serialize(item);
+            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var result = await _httpClient.PostAsync($"{_settings.ItemApiAddress}/item", content);
         }
 
         public async Task<bool> UpdateItemAsync(ItemViewModel item)
         {
+            if (!IsValidItem(item, out var validationErrors))
+            {
+                throw new ArgumentException(string.Join(", ", validationErrors));
+            }
             
-                if (!IsValidItem(item, out var validationErrors))
-                {
-                    throw new ArgumentException(string.Join(", ", validationErrors));
-                }
-
-                var jsonContent = JsonSerializer.Serialize(item);
-                using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
-
-                return true;
+            var jsonContent = JsonSerializer.Serialize(item);
+            using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            await _httpClient.PutAsync($"{_settings.ItemApiAddress}/item", content);
+            
+            return true;
         }
 
         public async Task DeleteItemAsync(long id)

@@ -9,205 +9,62 @@
 @inject ICommunicationService _communicationService;
 @inject NavigationManager navigation;
 
-<DxGrid Data="items"
+<DxGrid 
+        @ref="_grid"
+        Data="_items"
+        KeyFieldName="Id"
+        EditModelSaving="SaveModel"
+        DataItemDeleting="DeleteModel"
+        EditMode="GridEditMode.EditRow"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
         KeyboardNavigationEnabled="true">
-
     <Columns>
+        <DxGridCommandColumn Width="160px" />
         <DxGridDataColumn FieldName="Name" />
         <DxGridDataColumn FieldName="Price" />
         <DxGridDataColumn FieldName="DateAdded" Caption="Date Added" />
-
     </Columns>
 </DxGrid>
 
-<br />
-<br />
-<br />
-<h2>Add new Item</h2>
-<EditForm Model="@_item" OnValidSubmit="@HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div>
-        <label>Name:</label>
-        <InputText id="name" @bind-Value="_item.Name" />
-        <ValidationMessage For="@(() => _item.Name)" />
-    </div>
-    <div>
-        <label>Price:</label>
-        <InputNumber id="price" @bind-Value="_item.Price" />
-        <ValidationMessage For="@(() => _item.Price)" />
-    </div>
-    <div>
-        <label>Date Added:</label>
-        <InputDate id="dateAdded" @bind-Value="_item.DateAdded" />
-        <ValidationMessage For="@(() => _item.DateAdded)" />
-    </div>
-
-    <button class="btn btn-info" type="submit">Submit</button>
-    @if (!string.IsNullOrEmpty(insertErrorMessage))
-    {
-        <div class="alert alert-danger">@insertErrorMessage</div>
-    }
-
-</EditForm>
-<br />
-<h3>Items</h3>
-
-@if (items == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Date Added</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    @if (item.Id == editingItem?.Id)
-                    {
-                        <td>
-                            <InputText class="form-control" @bind-Value="editingItem.Name" />
-
-                        </td>
-                        <td>
-                            <InputNumber class="form-control" @bind-Value="editingItem.Price" />
-                        </td>
-                        <td>
-                            <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
-                            @if (!string.IsNullOrEmpty(updateErrorMessage))
-                            {
-                                <div class="alert alert-danger">@updateErrorMessage</div>
-                            }
-                            <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-                        </td>
-
-                    }
-                    else
-                    {
-                        <td>@item.Name</td>
-                        <td>@item.Price</td>
-                        <td>@item.DateAdded</td>
-                        <td>
-                            <button class="btn btn-primary" @onclick="() => Edititem(item)">Edit</button>
-                            <button class="btn btn-danger" @onclick="() =>  Deleteitem(item.Id)">Delete</button>
-                            @if (!string.IsNullOrEmpty(insertErrorMessage))
-                            {
-                                <div class="alert alert-danger">@deleteErrorMessage</div>
-                            }
-                        </td>
-                    }
-                </tr>
-            }
-
-        </tbody>
-    </table>
-}
 @code {
+    private List<ItemViewModel?> _items;
+    private IGrid _grid;
 
-    private List<ItemViewModel?> items { get; set; }
-    private ItemViewModel selectedItem = new ItemViewModel();
-    private ItemViewModel editingItem = null;
-
-    private string updateErrorMessage;
-    private string insertErrorMessage;
-    private string deleteErrorMessage;
-    private string getErrorMessage;
-
-    private async void Edititem(ItemViewModel item)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        editingItem = new ItemViewModel()
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Price = item.Price,
-                DateAdded = item.DateAdded
-            };
-
+        if (firstRender)
+            await _grid.StartEditRowAsync(0);
     }
 
-    private async void SaveEdit()
+    async Task SaveModel(GridEditModelSavingEventArgs e)
     {
-        if (editingItem != null)
-        {
-            updateErrorMessage = null;
-            try
-            {
-                await _communicationService.UpdateItemAsync(editingItem);
-                var item = items.FirstOrDefault(p => p.Id == editingItem.Id);
-                if (item != null)
-                {
-                    item.Name = editingItem.Name;
-                    item.Price = editingItem.Price;
-                }
-                editingItem = null;
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                updateErrorMessage = ex.Message;
-            }
-        }
+        if (e.IsNew)
+            await _communicationService.InsertItemAsync((ItemViewModel)e.EditModel);
+        else
+            await _communicationService.UpdateItemAsync((ItemViewModel)e.EditModel);
+
+        await UpdateDataAsync();
     }
 
-    private void CancelEdit()
+    async Task DeleteModel(GridDataItemDeletingEventArgs e)
     {
-        editingItem = null;
+        await _communicationService.DeleteItemAsync(((ItemViewModel)e.DataItem).Id);
+        await UpdateDataAsync();
     }
-    private ItemViewModel _item = new ItemViewModel();
 
-    private async Task HandleValidSubmit()
+    async Task UpdateDataAsync()
     {
-        insertErrorMessage = null;
         try
         {
-            await _communicationService.InsertItemAsync(_item);
-            _item = new ItemViewModel();
-
-            await OnInitializedAsync();
-        }
-        catch (Exception ex)
-        {
-            insertErrorMessage = ex.Message;
-        }
-    }
-
-    private async Task Deleteitem(long id)
-    {
-        deleteErrorMessage = null;
-        try
-        {
-            await _communicationService.DeleteItemAsync(id);
-
-            await OnInitializedAsync(); // Refresh the list
+            _items = await _communicationService.GetAllAsync();
         }
         catch (Exception)
         {
-            deleteErrorMessage = "Failed to delete this item! Please try again!";
         }
-
     }
 
     protected override async Task OnInitializedAsync()
     {
-        getErrorMessage = null;
-        try
-        {
-            items = await _communicationService.GetAllAsync();
-            await base.OnInitializedAsync();
-        }
-        catch (Exception)
-        {
-            getErrorMessage = "Failed to load data! Please try again later!";
-        }
+        await UpdateDataAsync();
     }
 }
