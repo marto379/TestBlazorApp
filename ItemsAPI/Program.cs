@@ -1,4 +1,5 @@
 using ItemsAPI.Models;
+using ItemsAPI.Validators;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ItemsAPI

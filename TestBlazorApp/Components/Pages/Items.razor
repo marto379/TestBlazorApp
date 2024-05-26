@@ -9,26 +9,34 @@
 @inject ICommunicationService _communicationService;
 @inject NavigationManager navigation;
 
-<DxGrid 
-        @ref="_grid"
-        Data="_items"
-        KeyFieldName="Id"
-        EditModelSaving="SaveModel"
-        DataItemDeleting="DeleteModel"
-        EditMode="GridEditMode.EditRow"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        KeyboardNavigationEnabled="true">
-    <Columns>
-        <DxGridCommandColumn Width="160px" />
-        <DxGridDataColumn FieldName="Name" />
-        <DxGridDataColumn FieldName="Price" />
-        <DxGridDataColumn FieldName="DateAdded" Caption="Date Added" />
-    </Columns>
-</DxGrid>
-
+<DxFormLayout>
+@if (!string.IsNullOrEmpty(_errorMessage))
+{  
+    <DxFormLayoutItem ColSpanMd="12">
+        <div style="color:red">@_errorMessage</div>
+    </DxFormLayoutItem>  
+} 
+    <DxGrid 
+            @ref="_grid"
+            Data="_items"
+            KeyFieldName="Id"
+            EditModelSaving="SaveModel"
+            DataItemDeleting="DeleteModel"
+            EditMode="GridEditMode.EditRow"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            KeyboardNavigationEnabled="true">
+        <Columns>
+            <DxGridCommandColumn Width="160px" />
+            <DxGridDataColumn FieldName="Name" />
+            <DxGridDataColumn FieldName="Price" />
+            <DxGridDataColumn FieldName="DateAdded" Caption="Date Added" />
+        </Columns>
+    </DxGrid>
+</DxFormLayout>
 @code {
     private List<ItemViewModel?> _items;
     private IGrid _grid;
+    private string _errorMessage = string.Empty;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -38,17 +46,39 @@
 
     async Task SaveModel(GridEditModelSavingEventArgs e)
     {
-        if (e.IsNew)
-            await _communicationService.InsertItemAsync((ItemViewModel)e.EditModel);
-        else
-            await _communicationService.UpdateItemAsync((ItemViewModel)e.EditModel);
+        try
+        {
+            if (e.IsNew)
+            {
+                await _communicationService.InsertItemAsync((ItemViewModel)e.EditModel);    
+            }
+            else
+            {
+                await _communicationService.UpdateItemAsync((ItemViewModel)e.EditModel); 
+            }
+
+            _errorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
 
         await UpdateDataAsync();
     }
 
     async Task DeleteModel(GridDataItemDeletingEventArgs e)
     {
-        await _communicationService.DeleteItemAsync(((ItemViewModel)e.DataItem).Id);
+        try
+        {
+            await _communicationService.DeleteItemAsync(((ItemViewModel)e.DataItem).Id);
+            _errorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+
         await UpdateDataAsync();
     }
 
@@ -58,13 +88,22 @@
         {
             _items = await _communicationService.GetAllAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _errorMessage = ex.Message;
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await UpdateDataAsync();
+        try
+        {
+            await UpdateDataAsync();
+            _errorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
     }
 }

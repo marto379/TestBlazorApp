@@ -15,7 +15,7 @@
 
         [JsonPropertyName("price")]
         [Required(ErrorMessage = "Price is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Number must be positive. ")]
+        [Range(0, double.MaxValue, ErrorMessage = "Number must be positive")]
         public decimal Price { get; set; }
 
         [JsonPropertyName("dateAdded")]

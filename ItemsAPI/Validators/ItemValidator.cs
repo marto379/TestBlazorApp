@@ -1,14 +1,14 @@
-﻿namespace ItemsAPI
-{
-    using ItemsAPI.Models;
+﻿using ItemsAPI.Models;
 
+namespace ItemsAPI.Validators
+{
     public class ItemValidator
     {
         public bool IsValidItem(Item item, out List<string> validationErrors)
         {
             validationErrors = new List<string>();
 
-            if (item.Price <= 0)
+            if (item.Price < 0)
             {
                 validationErrors.Add("Price must be a positive number");
             }

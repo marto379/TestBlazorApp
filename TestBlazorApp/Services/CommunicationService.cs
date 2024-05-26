@@ -78,7 +78,7 @@ namespace ItemsBlazorApp.Services
         {
             validationErrors = new List<string>();
 
-            if (viewModel.Price <= 0)
+            if (viewModel.Price < 0)
             {
                 validationErrors.Add("Price must be a positive number.");
             }
