@@ -38,12 +38,6 @@
     private IGrid _grid;
     private string _errorMessage = string.Empty;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            await _grid.StartEditRowAsync(0);
-    }
-
     async Task SaveModel(GridEditModelSavingEventArgs e)
     {
         try
