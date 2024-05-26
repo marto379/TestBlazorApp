@@ -1,7 +1,5 @@
 using ItemsAPI.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace ItemsAPI
 {
@@ -39,14 +37,21 @@ namespace ItemsAPI
 
             app.MapGet("item/{id}", async ([FromRoute] long id, IDataAccessLayer accessLayer) =>
             {
-                var result = await accessLayer.GetItemAsync(id);
-                if (result is null)
+                try
                 {
-                    return Results.NotFound();
+                    var result = await accessLayer.GetItemAsync(id);
+                    if (result is null)
+                    {
+                        return Results.NotFound();
+                    }
+                    else
+                    {
+                        return Results.Ok(result);
+                    }
                 }
-                else
+                catch (Exception)
                 {
-                    return Results.Ok(result);
+                    return Results.Problem("Something went wrong!");
                 }
             });
 
@@ -59,31 +64,45 @@ namespace ItemsAPI
                 }
                 catch (Exception)
                 {
-                    return Results.NotFound("Something went wrong!");
+                    return Results.Problem("Something went wrong!");
                 }
             });
 
-            app.MapPost("item", async ([FromBody]Item item ,IDataAccessLayer accesslayer, ItemValidator validator) =>
+            app.MapPost("item", async ([FromBody] Item item, IDataAccessLayer accesslayer, ItemValidator validator) =>
             {
-                if (!validator.IsValidItem(item, out var validationErrors))
+                try
                 {
-                    return Results.BadRequest(string.Join(", ", validationErrors));
+                    if (!validator.IsValidItem(item, out var validationErrors))
+                    {
+                        return Results.BadRequest(string.Join(", ", validationErrors));
+                    }
+                    await accesslayer.InsertItemAsync(item);
+                    return Results.Ok();
                 }
-                await accesslayer.InsertItemAsync(item);
-                return Results.Ok();
+                catch (Exception)
+                {
+                    return Results.Problem("Something went wrong!");
+                }
             });
 
             app.MapPut("item", async ([FromBody] Item item, IDataAccessLayer accessLayer, ItemValidator validator) =>
             {
-                if (!validator.IsValidItem(item, out var validationErrors))
+                try
                 {
-                    return Results.BadRequest(string.Join(", ", validationErrors));
+                    if (!validator.IsValidItem(item, out var validationErrors))
+                    {
+                        return Results.BadRequest(string.Join(", ", validationErrors));
+                    }
+                    await accessLayer.UpdateItemAsync(item);
+                    return Results.Ok();
                 }
-                await accessLayer.UpdateItemAsync(item);
-                return Results.Ok();
+                catch (Exception)
+                {
+                    return Results.Problem("Something went wrong!");
+                }
             });
 
-            app.MapDelete("item/{id}", async ([FromRoute]long id, IDataAccessLayer accessLayer) =>
+            app.MapDelete("item/{id}", async ([FromRoute] long id, IDataAccessLayer accessLayer) =>
             {
                 try
                 {

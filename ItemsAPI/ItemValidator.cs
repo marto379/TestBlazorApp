@@ -10,12 +10,17 @@
 
             if (item.Price <= 0)
             {
-                validationErrors.Add("Price must be a positive number.");
+                validationErrors.Add("Price must be a positive number");
             }
 
             if (string.IsNullOrEmpty(item.Name))
             {
                 validationErrors.Add("Name can't be empty");
+            }
+
+            if (item.Name.Length > 100)
+            {
+                validationErrors.Add("Name can't be longer than 100 chars");
             }
 
             return !validationErrors.Any();

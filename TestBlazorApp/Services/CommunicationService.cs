@@ -89,6 +89,11 @@ namespace ItemsBlazorApp.Services
                 validationErrors.Add("Name can't be empty");
             }
 
+            if (viewModel.Name.Length > 100)
+            {
+                validationErrors.Add("Name can't be longer than 100 chars");
+            }
+
             return !validationErrors.Any();
         }
     }
